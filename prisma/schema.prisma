@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MonthlyChart {
+  id        String   @id @default(cuid())
+  month     Int      // 1-12
+  year      Int
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  days      DayData[]
+
+  @@unique([month, year])
+}
+
+model DayData {
+  id         String       @id @default(cuid())
+  day        Int          // 1-31
+  chartId    String
+  chart      MonthlyChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+
+  // 6 time slots - each has a single result number (null = not yet posted)
+  slot1   Int?
+  slot2   Int?
+  slot3   Int?
+  slot4   Int?
+  slot5   Int?
+  slot6   Int?
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([chartId, day])
+}
+
+model SiteSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  updatedAt   DateTime @updatedAt
+}
