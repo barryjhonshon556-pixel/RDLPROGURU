@@ -3,7 +3,10 @@ import { db } from '@/lib/db';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getISTDay, getISTMonth, getISTYear } from '@/lib/ist-date';
 
-const CRON_SECRET = process.env.CRON_SECRET || 'rdl-cron-secret-2026';
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET) {
+  throw new Error('[FATAL] CRON_SECRET environment variable not set. This is required for cron job security.');
+}
 
 export async function GET(request: NextRequest) {
   try {

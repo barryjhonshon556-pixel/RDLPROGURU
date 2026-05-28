@@ -115,10 +115,8 @@ export async function POST() {
       success: true,
       setupAvailable: false,
       adminCreated: true,
-      adminUsername: 'admin',
-      adminPassword: 'admin123',
       chartsCreated: true,
-      message: 'Setup complete! Admin account created with sample data for past 5 months. Username: admin, Password: admin123. IMPORTANT: Change the password immediately after first login!',
+      message: 'Setup complete! Admin account created with username "admin" and password "admin123". IMPORTANT: Change the password immediately after first login. Store these credentials securely.',
     });
   } catch (error) {
     console.error('Setup error:', error);

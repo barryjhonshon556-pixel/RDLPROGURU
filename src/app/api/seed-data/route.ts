@@ -24,6 +24,18 @@ export async function GET() {
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
   }
+
+  // SECURITY: Check if data has already been seeded (one-time only)
+  const seedFlag = await db.siteSettings.findUnique({
+    where: { key: 'is_data_seeded' },
+  });
+  if (seedFlag && seedFlag.value === 'true') {
+    return NextResponse.json(
+      { error: 'Data already seeded. This operation can only be run once. Contact support to reset.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const currentMonth = getISTMonth();
     const currentYear = getISTYear();
@@ -87,6 +99,13 @@ export async function GET() {
         fieldsUpdated: chartFieldsUpdated,
       });
     }
+
+    // Set the one-time seeded flag
+    await db.siteSettings.upsert({
+      where: { key: 'is_data_seeded' },
+      update: { value: 'true' },
+      create: { key: 'is_data_seeded', value: 'true' },
+    });
 
     return NextResponse.json({
       success: true,

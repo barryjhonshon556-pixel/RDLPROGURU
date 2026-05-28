@@ -5,12 +5,12 @@ import { db } from './db';
 
 // Session management using cookies with proper JWT signing
 const SESSION_COOKIE = 'rdl_admin_session';
-// SECURITY: Fail hard if no JWT secret is configured - never use a fallback in production
+// SECURITY: Fail hard if no JWT secret is configured - never use a fallback
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.warn('[AUTH WARNING] JWT_SECRET environment variable not set. Using development fallback. Set JWT_SECRET in production!');
+  throw new Error('[FATAL] JWT_SECRET environment variable not set. This is required for security. Set JWT_SECRET in your .env or environment.');
 }
-const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'rdl-pro-matka-dev-only-secret-DO-NOT-USE-IN-PROD';
+const EFFECTIVE_JWT_SECRET = JWT_SECRET;
 
 // bcrypt password hashing
 export async function hashPassword(password: string): Promise<string> {
