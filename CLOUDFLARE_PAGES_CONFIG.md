@@ -1,21 +1,29 @@
 # Cloudflare Pages Build Configuration
 
-## Build Settings
+## Build Settings in Cloudflare Dashboard
 
-**Build Command:**
-```
-npm run build
-```
+If you have API routes with Prisma, Cloudflare Pages **must** use its `next-on-pages` bridge. Cloudflare Pages cannot natively host `.next/server` Node.js folders because it runs on serverless V8 Workers instead of traditional VPS servers.
 
-**Build Output Directory:**
-```
-.next/server
-```
+To fix the `Error: Output directory ".next\server" not found.` error, you need to update your Cloudflare Project Settings.
 
-**Node Version:**
-```
-Node.js 20 (or latest)
-```
+### The Correct Settings:
+
+- **Framework preset**: Select `Next.js`
+- **Build command**: `npm run build`
+- **Build output directory**: `.vercel/output/static` (Cloudflare generates this automatically when you use the Next.js preset)
+
+## Instructions to Fix
+
+1. Log in to your Cloudflare Dashboard and navigate to your `rdl-pro-matka` Pages project.
+2. Go to **Settings** → **Builds & Deployments**.
+3. Under **Build configurations**, click **Edit**.
+4. Set the field exactly as follows:
+   - Framework preset: **Next.js**
+   - Build command: `npm run build && npx @cloudflare/next-on-pages`
+   - Build output directory: `.vercel/output/static`
+5. Click **Save** and trigger a new deployment.
+
+*(By running `npx @cloudflare/next-on-pages` directly after your build, it takes the `.next` artifacts we just successfully compiled and converts them into Cloudflare Worker compatible edge functions!)*
 
 ---
 
@@ -25,130 +33,5 @@ For **Production** environment:
 
 ```
 DATABASE_URL=libsql://your-database.turso.io?authToken=your-token
-DATABASE_AUTH_TOKEN=your-token
-JWT_SECRET=your-random-secret-32-chars
-CRON_SECRET=your-random-secret-32-chars
 NODE_ENV=production
 ```
-
----
-
-## Step-by-Step Setup in Cloudflare Pages
-
-### 1. Connect Git Repository
-- Go to https://dash.cloudflare.com
-- Select **Pages**
-- Click **Create a project**
-- Select **Connect to Git**
-- Choose your GitHub repository: `rdl-pro-matka`
-
-### 2. Configure Build Settings
-- **Framework preset**: Select `Next.js`
-- **Build command**: `npm run build`
-- **Build output directory**: `.next/server`
-
-### 3. Set Environment Variables
-- Go to **Settings** → **Environment variables**
-- Click **Add environment variable**
-- Add these **for Production**:
-
-| Variable | Value |
-|----------|-------|
-| `DATABASE_URL` | `libsql://your-turso-url?authToken=token` |
-| `DATABASE_AUTH_TOKEN` | Your Turso auth token |
-| `JWT_SECRET` | Generate random 32+ char string |
-| `CRON_SECRET` | Generate different random 32+ char string |
-| `NODE_ENV` | `production` |
-
-### 4. Deploy
-- Click **Save and Deploy**
-- Wait for build to complete (5-10 minutes)
-- Check build logs for any errors
-
----
-
-## Troubleshooting Build Errors
-
-### Error: "Prisma not found"
-**Solution**: Ensure `package.json` build script includes `prisma generate`:
-```json
-"build": "prisma generate && next build"
-```
-
-### Error: "DATABASE_URL is not set"
-**Solution**: Set environment variables in Cloudflare Pages dashboard, not in `.env` file
-
-### Error: "Cannot find module '@prisma/client'"
-**Solution**: Dependencies are installed during build. Check `package-lock.json` is committed to Git.
-
-### Error: "Port already in use"
-**Solution**: This is normal on Cloudflare - it assigns its own port
-
-### Error: "Maximum build timeout"
-**Solution**: Increase build timeout in Cloudflare if needed. Usually takes 5-10 minutes.
-
----
-
-## Local Build Testing
-
-Before deploying, test the build locally:
-
-```bash
-# Clean build
-npm run build
-
-# Start production server
-npm start
-```
-
-If it works locally, it will work on Cloudflare Pages.
-
----
-
-## Important Notes
-
-✅ **DO**: Set secrets in Cloudflare dashboard  
-❌ **DON'T**: Commit `.env` with secrets to Git  
-
-✅ **DO**: Use SQLite provider with Turso URL  
-❌ **DON'T**: Change database provider  
-
-✅ **DO**: Keep same code for local and production  
-❌ **DON'T**: Create separate builds  
-
----
-
-## After Deployment
-
-1. **Get your site URL**: `https://[project-name].pages.dev`
-
-2. **Initialize database** (run once):
-   ```bash
-   curl -X POST https://[project-name].pages.dev/api/setup
-   ```
-
-3. **Test admin login**: `https://[project-name].pages.dev/admin`
-
-4. **Change default password immediately**
-
----
-
-## Database Connection Flow
-
-```
-Cloudflare Pages
-    ↓
-Environment Variables (DATABASE_URL, etc.)
-    ↓
-.env loaded by Next.js at build time
-    ↓
-Prisma Client uses DATABASE_URL
-    ↓
-Turso Database (libsql://)
-    ↓
-Your Data (Persistent!)
-```
-
----
-
-For complete deployment guide, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
