@@ -42,4 +42,3 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-export const runtime = 'edge';
