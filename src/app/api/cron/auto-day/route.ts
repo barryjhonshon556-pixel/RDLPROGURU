@@ -3,9 +3,13 @@ import { db } from '@/lib/db';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getISTDay, getISTMonth, getISTYear } from '@/lib/ist-date';
 
-const CRON_SECRET = process.env.CRON_SECRET;
-if (!CRON_SECRET) {
-  throw new Error('[FATAL] CRON_SECRET environment variable not set. This is required for cron job security.');
+// SECURITY: Get CRON_SECRET at runtime, not build time (Cloudflare Pages limitation)
+function getCronSecret(): string {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    throw new Error('[FATAL] CRON_SECRET environment variable not set. This is required for cron job security.');
+  }
+  return secret;
 }
 
 export async function GET(request: NextRequest) {
@@ -18,7 +22,7 @@ export async function GET(request: NextRequest) {
       const cronKey = request.nextUrl.searchParams.get('key');
       const providedSecret = authHeader?.replace('Bearer ', '') || cronKey;
 
-      if (providedSecret !== CRON_SECRET) {
+      if (providedSecret !== getCronSecret()) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
