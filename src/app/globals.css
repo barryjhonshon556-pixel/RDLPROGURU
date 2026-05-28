@@ -1,6 +1,9 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Tailwind v4 specific features - commented for v3 compatibility */
+/*
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -42,6 +45,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+*/
 
 /* ─── Custom Theme Properties ─────────────────────────────────────────────── */
 

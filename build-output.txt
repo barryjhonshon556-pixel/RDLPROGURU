@@ -1,0 +1,40 @@
+
+> nextjs_tailwind_shadcn_ts@0.2.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v6.19.2) to .\node_modules\@prisma\client in 79ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+Γû▓ Next.js 16.1.3 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/globals.css:1:2
+Module not found: Can't resolve 'tw-animate-css'
+> 1 | @import "tw-animate-css";
+    |  ^
+  2 |
+  3 | *, ::before, ::after{
+  4 |   --tw-border-spacing-x: 0;
+
+
+
+Import trace:
+  Client Component Browser:
+    ./src/app/globals.css [Client Component Browser]
+    ./src/app/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./src/app/globals.css:1:2)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
