@@ -67,7 +67,6 @@ export async function POST(request: Request) {
     if (missingDays.length > 0) {
       await db.dayData.createMany({
         data: missingDays,
-        skipDuplicates: true,
       });
     }
 

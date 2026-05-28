@@ -78,55 +78,50 @@ turso db show rdl-pro-matka
 
 ## Step 4: Migrate Your Schema
 
-### Option A: Using Prisma CLI (Recommended)
+### Important: Local Development vs Production
 
-1. Update `.env.local` temporarily:
+Your project uses:
+- **Local Development**: SQLite database (works great)
+- **Production (Cloudflare)**: Turso database via API
+
+### For Local Development (NOW)
+
+Your `.env` is correctly configured:
 ```
-DATABASE_URL=libsql://[your-database-name].turso.io?authToken=[your-token]
-DATABASE_AUTH_TOKEN=[your-token]
+DATABASE_URL=file:./db/custom.db
 ```
 
-2. Run migration:
+Run Prisma migration:
 ```bash
 npx prisma db push
 ```
 
-This will:
-- Validate schema
-- Create all tables (Admin, MonthlyChart, DayData, SiteSettings)
-- Prepare database for use
+Expected output:
+```
+✔ Generated Prisma Client
+```
 
-3. Verify migration:
+This creates your local SQLite database with all tables.
+
+### For Production with Turso (LATER)
+
+When you deploy to Cloudflare Pages later:
+1. Create your Turso database (steps 1-3 above)
+2. In Cloudflare dashboard, set these environment variables:
+   ```
+   DATABASE_URL=libsql://your-db.turso.io?authToken=xxx
+   ```
+3. Cloudflare will use that URL for your production app
+4. Your code works the same - Prisma client handles it automatically
+
+**How it works**: SQLite driver can connect to both local files AND Turso databases via HTTP. The connection details are controlled by the environment variables.
+
+### Verify Migration
+
 ```bash
 npx prisma studio
 # Opens web UI showing your database tables
-```
-
-### Option B: Using Turso CLI (Manual)
-
-```bash
-# Create table structure manually if needed
-turso db shell rdl-pro-matka << 'EOF'
-CREATE TABLE IF NOT EXISTS Admin (
-  id TEXT PRIMARY KEY,
-  username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updatedAt DATETIME
-);
-
-CREATE TABLE IF NOT EXISTS MonthlyChart (
-  id TEXT PRIMARY KEY,
-  month INTEGER NOT NULL,
-  year INTEGER NOT NULL,
-  visible BOOLEAN DEFAULT 1,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updatedAt DATETIME,
-  UNIQUE(month, year)
-);
-
--- (add other tables as needed)
-EOF
+# Verify: Admin, MonthlyChart, DayData, SiteSettings tables exist
 ```
 
 ---
@@ -182,27 +177,49 @@ curl -X GET https://your-domain.com/api/seed-data \
 
 ## Step 7: Environment Variables
 
-### For Local Development
+### Local Development (CURRENT) ✅
 
-Create `.env.local`:
+Your `.env` file is perfect for local development:
 ```
-DATABASE_URL=libsql://rdl-pro-matka-[org].turso.io?authToken=[token]
-DATABASE_AUTH_TOKEN=[token]
-JWT_SECRET=dev-local-secret-change-in-prod
-CRON_SECRET=dev-local-secret-change-in-prod
+DATABASE_URL=file:./db/custom.db
+JWT_SECRET=dev-local-jwt-secret-change-in-production
+CRON_SECRET=dev-local-cron-secret-change-in-production
 ```
 
-### For Cloudflare Pages Production
+Works great! Your database is already set up and migrated.
 
-In Cloudflare Dashboard → Pages → Settings → Environment Variables:
+### Cloudflare Pages Production (WHEN YOU DEPLOY)
 
-**Production Deployment:**
+When deploying to Cloudflare later, you'll set these in the Cloudflare dashboard **Environment Variables**:
+
 ```
-DATABASE_URL = libsql://[database-name].turso.io?authToken=[token]
-DATABASE_AUTH_TOKEN = [token]
+DATABASE_URL = libsql://your-db-name-your-org.turso.io?authToken=YOUR_TOKEN
 JWT_SECRET = [generate-32-char-random-string]
 CRON_SECRET = [generate-32-char-random-string]
 ```
+
+**How it works:**
+- Your code doesn't change
+- The `DATABASE_URL` env var tells Prisma whether to use local SQLite or Turso
+- Cloudflare will build and deploy with the Turso URLs
+- Everything else stays the same
+
+**To get your Turso credentials:**
+1. Go to https://turso.tech/dashboard
+2. Create database: `rdl-pro-matka`
+3. Copy Connection URL: `libsql://...`
+4. Copy Auth Token
+5. Paste into Cloudflare env vars (don't commit to Git!)
+
+---
+
+### Important: Never Commit Production Secrets!
+
+✅ `.env` is in `.gitignore` for local dev  
+✅ Production secrets only in Cloudflare dashboard  
+✅ Never paste Turso tokens into `.env` for commits  
+
+The setup is secure by default.
 
 ---
 

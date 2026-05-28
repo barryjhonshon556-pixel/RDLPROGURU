@@ -50,7 +50,6 @@ export async function GET() {
       if (missingDays.length > 0) {
         await db.dayData.createMany({
           data: missingDays.map((d) => ({ day: d.day, chartId: chart.id })),
-          skipDuplicates: true,
         });
       }
     }

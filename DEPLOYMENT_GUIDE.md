@@ -53,62 +53,49 @@ dist/
 
 ## 🗄️ Part 2: Set Up Turso Database
 
+### Important: Why Turso?
+**Cloudflare Pages has ephemeral storage** - local files don't persist! You MUST use Turso for production.
+
+**Architecture:**
+- **Local Development**: SQLite file (`file:./db/custom.db`) ✅
+- **Cloudflare Pages**: Turso database (`libsql://xxx.turso.io`) ✅
+
+See [TURSO_CLOUDFLARE_ARCHITECTURE.md](./TURSO_CLOUDFLARE_ARCHITECTURE.md) for detailed explanation.
+
 ### Step 1: Create Turso Account
 1. Go to https://turso.tech
-2. Sign up (free tier includes 9GB storage, enough for matka data)
+2. Sign up (free tier includes 9GB storage)
 3. Verify email
 
 ### Step 2: Create Database
 1. In Turso dashboard, click "Create a database"
-2. Name: `rdl-pro-matka` or similar
-3. Region: Choose closest to your users (e.g., `mia` for Miami, `ams` for Amsterdam)
+2. Name: `rdl-pro-matka`
+3. Region: Choose closest to your users (e.g., `mia` for Americas, `ams` for Europe)
 4. Click "Create"
+5. Wait 10-15 seconds
 
 ### Step 3: Get Connection Credentials
-1. Open your database
-2. Click "Copy" on the connection URL (looks like `libsql://xxx.turso.io?authToken=xxx`)
-3. **Save this securely** - you'll need it
+1. Open your database in Turso dashboard
+2. Copy **Connection URL**: `libsql://xxx.turso.io?authToken=yyy`
+3. Copy **Auth Token**: `yyy`
+4. **Save both securely** - you'll need them in Cloudflare
 
-### Step 4: Migrate Schema to Turso
+### Step 4: Migrate Schema (Optional for Dev)
 
-1. Install Turso CLI (if not already):
-```bash
-# On Windows
-scoop install turso
-# Or download from https://github.com/tursodatabase/turso-cli/releases
-```
-
-2. Log in to Turso CLI:
-```bash
-turso auth login
-```
-
-3. Get your database URL and auth token from Turso dashboard
-
-4. Update `prisma/schema.prisma` to use Turso:
-```prisma
-datasource db {
-  provider = "libsql"
-  url      = env("DATABASE_URL")
-  authToken = env("DATABASE_AUTH_TOKEN")
-}
-```
-
-5. Run migration:
+Your local schema is already migrated:
 ```bash
 npx prisma db push
+# This works with local SQLite
 ```
 
-This will:
-- Generate Prisma client
-- Create all tables (Admin, MonthlyChart, DayData, SiteSettings)
+For Turso, the schema will be created when Cloudflare deploys.
 
-### Step 5: Verify Migration
+### Step 5: Verify Turso is Ready
 
-```bash
-# Test if connection works
-turso db show rdl-pro-matka
-```
+1. Go to https://turso.tech/dashboard
+2. See your database listed
+3. Click it and verify tables can be created
+4. Ready for production!
 
 ---
 
@@ -133,15 +120,19 @@ turso db show rdl-pro-matka
 2. **Build command**: `npm run build`
 3. **Build output directory**: `.next` (or leave default)
 
-4. **Environment Variables** - Click "Add environment variable" for each:
+4. **Environment Variables** - Click "Add environment variable" for **Production**:
 
-   **For Production:**
    ```
-   DATABASE_URL = libsql://xxx.turso.io?authToken=xxx
-   DATABASE_AUTH_TOKEN = [your-auth-token]
+   DATABASE_URL = libsql://your-database.turso.io?authToken=your-token-here
+   DATABASE_AUTH_TOKEN = your-auth-token-from-turso
    JWT_SECRET = [generate-random-string-see-below]
    CRON_SECRET = [generate-random-string-see-below]
    ```
+
+   ⚠️ **IMPORTANT**: These are for **PRODUCTION ONLY**  
+   Get the values from:
+   - `DATABASE_URL` & `DATABASE_AUTH_TOKEN`: From Turso dashboard
+   - `JWT_SECRET` & `CRON_SECRET`: Generate random strings below
 
    **Generate Random Secrets:**
    ```bash

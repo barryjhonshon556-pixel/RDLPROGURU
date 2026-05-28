@@ -72,7 +72,6 @@ export async function GET(request: NextRequest) {
       if (missingDays.length > 0) {
         await db.dayData.createMany({
           data: missingDays,
-          skipDuplicates: true,
         });
         daysCreated = missingDays.length;
       }
