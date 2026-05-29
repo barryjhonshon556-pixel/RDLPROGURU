@@ -4,12 +4,12 @@ import { createClient } from '@libsql/client'
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   const connectionUrl = process.env.DATABASE_URL
   const authToken = process.env.DATABASE_AUTH_TOKEN || ''
 
   if (!connectionUrl) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    throw new Error('DATABASE_URL is not set')
   }
 
   const isLibSql = connectionUrl.startsWith('libsql://') || connectionUrl.startsWith('https://')
