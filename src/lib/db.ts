@@ -2,14 +2,16 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { createClient } from '@libsql/client'
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
+declare global {
+  var prisma: PrismaClient | undefined
+}
 
 function createPrismaClient(): PrismaClient {
   const connectionUrl = process.env.DATABASE_URL
   const authToken = process.env.DATABASE_AUTH_TOKEN || ''
 
   if (!connectionUrl) {
-    throw new Error('DATABASE_URL is not set')
+    throw new Error('DATABASE_URL environment variable is not set')
   }
 
   const isLibSql = connectionUrl.startsWith('libsql://') || connectionUrl.startsWith('https://')
@@ -23,8 +25,20 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient()
 }
 
-export const db = globalForPrisma.prisma ?? createPrismaClient()
+function getDb(): PrismaClient {
+  if (process.env.NODE_ENV === 'production') {
+    return createPrismaClient()
+  }
+  if (!global.prisma) {
+    global.prisma = createPrismaClient()
+  }
+  return global.prisma
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return (getDb() as unknown as Record<string | symbol, unknown>)[prop]
+  }
+})
 
 export default db

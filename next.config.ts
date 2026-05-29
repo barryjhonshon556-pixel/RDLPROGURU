@@ -8,9 +8,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   reactStrictMode: false,
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', '@libsql/client'],
-  },
+  serverExternalPackages: ['@prisma/client', '@libsql/client'],
 };
 
 export default nextConfig;
