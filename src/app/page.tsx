@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic'
 import { useState, useSyncExternalStore, useCallback } from 'react';
 import { Header } from '@/components/public/Header';
 import { LiveResultBanner } from '@/components/public/LiveResultBanner';
