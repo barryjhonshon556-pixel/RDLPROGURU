@@ -228,7 +228,9 @@ export function MobileChartCards({ chart }: MobileChartCardsProps) {
     (d) => !isCurrentMonth || d.day <= todayDay
   )
 
-  const useVirtualization = filteredDays.length > 20
+  // A month has at most 31 rows, so a normal list is fast enough on mobile.
+  // This avoids fixed-height virtualization clipping slot5/slot6 on some devices.
+  const useVirtualization = false
 
   return (
     <motion.div
